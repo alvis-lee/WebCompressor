@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebCompressCommon
@@ -33,7 +34,22 @@ namespace WebCompressCommon
             str.Write(byteArray, 0, byteArray.Length);
             str.Close();
 
-            WebResponse response = request.GetResponse();
+            //WebResponse response = request.GetResponse();
+            WebResponse response = null;
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    response = request.GetResponse();
+                    break;
+                }
+                catch
+                {
+                    //
+                }
+                Thread.Sleep(50);
+            }
+            if (response == null) return null;
             str = response.GetResponseStream();
             if (str != null)
             {
@@ -66,7 +82,22 @@ namespace WebCompressCommon
             str.Write(byteArray, 0, byteArray.Length);
             str.Close();
 
-            WebResponse response = request.GetResponse();
+            //WebResponse response = request.GetResponse();
+            WebResponse response = null;
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    response = request.GetResponse();
+                    break;
+                }
+                catch
+                {
+                    //
+                }
+                Thread.Sleep(50);
+            }
+            if (response == null) return null;
             str = response.GetResponseStream();
             if (str != null)
             {
@@ -98,8 +129,21 @@ namespace WebCompressCommon
             Stream str = request.GetRequestStream();
             str.Write(byteArray, 0, byteArray.Length);
             str.Close();
-
-            WebResponse response = request.GetResponse();
+            WebResponse response = null;
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    response = request.GetResponse();
+                    break;
+                }
+                catch
+                {
+                    //
+                }
+                Thread.Sleep(50);
+            }
+            if (response == null) return null;
             str = response.GetResponseStream();
             if (str != null)
             {
