@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace WebCompressCommon
 {
@@ -17,98 +18,68 @@ namespace WebCompressCommon
     {
         /// <summary>
         /// 压缩css
+        /// http://tool.oschina.net/action/jscompress/css_compress?linebreakpos=0
         /// </summary>
         /// <param name="rawCss">需要压缩的css</param>
         /// <returns>压缩后的css</returns>
         public static string CssCompress(string rawCss)
         {
-            string cssJson = null;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://tool.oschina.net/action/jscompress/css_compress?linebreakpos=0");
-            request.Method = "POST";
-            string formContent = rawCss;
-            byte[] byteArray = Encoding.UTF8.GetBytes(formContent);
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = byteArray.Length;
+            var urlString = @"http://tool.oschina.net/action/jscompress/css_compress?linebreakpos=0";
+            var param = rawCss;
+            string requestData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(requestData);
+            if (dic.ContainsKey("result"))
+                return dic["result"].ToString();
+            return string.Empty;
+        }
 
-            Stream str = request.GetRequestStream();
-            str.Write(byteArray, 0, byteArray.Length);
-            str.Close();
-
-            //WebResponse response = request.GetResponse();
-            WebResponse response = null;
-            for (var i = 0; i < 5; i++)
-            {
-                try
-                {
-                    response = request.GetResponse();
-                    break;
-                }
-                catch
-                {
-                    //
-                }
-                Thread.Sleep(50);
-            }
-            if (response == null) return null;
-            str = response.GetResponseStream();
-            if (str != null)
-            {
-                StreamReader reader = new StreamReader(str);
-                cssJson = reader.ReadToEnd();
-                reader.Close();
-                str.Close();
-            }
-            response.Close();
-            var dic = JsonConverter.JsonToDictionary(cssJson);
-            return dic["result"].ToString();
+        /// <summary>
+        /// 压缩css
+        /// http://tool.lu/css/ajax.html
+        /// </summary>
+        /// <param name="rawCss">需要压缩的css</param>
+        /// <returns>压缩后的css</returns>
+        public static string CssCompress2(string rawData)
+        {
+            var urlString = @"http://tool.lu/css/ajax.html";
+            var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            string requestData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(requestData);
+            if (dic.ContainsKey("text"))
+                return dic["text"].ToString();
+            return string.Empty;
         }
 
         /// <summary>
         /// 压缩js
+        /// http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0
         /// </summary>
         /// <param name="rawJs">需要压缩的js</param>
         /// <returns>压缩后的js</returns>
         public static string JsCompress(string rawJs)
         {
-            string cssJson = null;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0");
-            request.Method = "POST";
-            string formContent = rawJs;
-            byte[] byteArray = Encoding.UTF8.GetBytes(formContent);
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = byteArray.Length;
+            var urlString = @"http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0";
+            var param = rawJs;
+            string requestData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(requestData);
+            if (dic.ContainsKey("result"))
+                return dic["result"].ToString();
+            return string.Empty;
+        }
 
-            Stream str = request.GetRequestStream();
-            str.Write(byteArray, 0, byteArray.Length);
-            str.Close();
-
-            //WebResponse response = request.GetResponse();
-            WebResponse response = null;
-            for (var i = 0; i < 5; i++)
-            {
-                try
-                {
-                    response = request.GetResponse();
-                    break;
-                }
-                catch
-                {
-                    //
-                }
-                Thread.Sleep(50);
-            }
-            if (response == null) return null;
-            str = response.GetResponseStream();
-            if (str != null)
-            {
-                StreamReader reader = new StreamReader(str);
-                cssJson = reader.ReadToEnd();
-                reader.Close();
-                str.Close();
-            }
-            response.Close();
-            var dic = JsonConverter.JsonToDictionary(cssJson);
-            return dic["result"].ToString();
+        /// <summary>
+        /// 压缩js
+        /// http://tool.lu/js/ajax.html
+        /// </summary>
+        public static string JsCompress2(string rawData)
+        {
+            var urlString = @"http://tool.lu/js/ajax.html";
+            var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            string requestData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(requestData);
+            if (dic.ContainsKey("text"))
+                return dic["text"].ToString();
+            return string.Empty;
         }
 
         /// <summary>
@@ -116,45 +87,58 @@ namespace WebCompressCommon
         /// </summary>
         /// <param name="rawHtml">需要压缩的html</param>
         /// <returns>压缩后的html</returns>
-        public static string HtmlCompress(string rawHtml)
+        public static string HtmlCompress(string rawData)
         {
-            string cssJson = null;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://tool.lu/html/ajax.html");
+            var urlString = @"http://tool.lu/html/ajax.html";
+            var param = string.Format("code={0}&operate=compress", HttpUtility.UrlEncode(rawData));
+            string requestData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(requestData);
+            if (dic.ContainsKey("text"))
+                return dic["text"].ToString();
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 向指定服务器请求数据
+        /// POST
+        /// </summary>
+        /// <param name="url">URL</param>
+        /// <param name="param">请求参数</param>
+        /// <returns></returns>
+        private static string RequestDataByPost(string url, string param)
+        {
+            string getData = null;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
-            string formContent = string.Format("code={0}&operate=compress", rawHtml);
-            byte[] byteArray = Encoding.UTF8.GetBytes(formContent);
+            byte[] byteArray = Encoding.UTF8.GetBytes(param);
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = byteArray.Length;
 
             Stream str = request.GetRequestStream();
             str.Write(byteArray, 0, byteArray.Length);
             str.Close();
+
+            //WebResponse response = request.GetResponse();
             WebResponse response = null;
-            for (var i = 0; i < 5; i++)
+            try
             {
-                try
-                {
-                    response = request.GetResponse();
-                    break;
-                }
-                catch
-                {
-                    //
-                }
-                Thread.Sleep(50);
+                response = request.GetResponse();
+            }
+            catch (WebException ex)
+            {
+                response = ex.Response;
             }
             if (response == null) return null;
             str = response.GetResponseStream();
             if (str != null)
             {
                 StreamReader reader = new StreamReader(str);
-                cssJson = reader.ReadToEnd();
+                getData = reader.ReadToEnd();
                 reader.Close();
                 str.Close();
             }
             response.Close();
-            var dic = JsonConverter.JsonToDictionary(cssJson);
-            return dic["text"].ToString();
+            return getData;
         }
     }
 }

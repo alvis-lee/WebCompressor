@@ -9,7 +9,13 @@ namespace WebCompress
 {
     public class CompressHelper
     {
+        /// <summary>
+        /// 发布压缩事件
+        /// </summary>
         public event EventHandler Compressed;
+        /// <summary>
+        /// 发布压缩完成事件
+        /// </summary>
         public event EventHandler EndCompress;
 
         /// <summary>
@@ -27,6 +33,9 @@ namespace WebCompress
             OnCompressed(args);
         }
 
+        /// <summary>
+        /// 触发压缩事件
+        /// </summary>
         private void OnCompressed(EventArgs args)
         {
             var compressed = Compressed;
@@ -36,24 +45,49 @@ namespace WebCompress
             }
         }
 
+        /// <summary>
+        /// 完成压缩回调
+        /// </summary>
         private void CompressedCallback(IAsyncResult state)
         {
             var args = state.AsyncState as CompressArgs;
             if (args == null) return;
-            var endCompress = EndCompress;
-            if (endCompress != null)
+            try
             {
-                endCompress(this, args);
+                Compressed.EndInvoke(state);
+                var endCompress = EndCompress;
+                if (endCompress != null)
+                {
+                    //触发压缩完成事件
+                    endCompress(this, args);
+                }
+            }
+            catch (Exception ex)
+            {
+                //
+                Console.WriteLine(ex.Message);
             }
         }
     }
 
-   
 
     public class CompressArgs : EventArgs
     {
+        /// <summary>
+        /// 文件类型 css,js,html
+        /// </summary>
         public string FileType { get; set; }
+        /// <summary>
+        /// 文件全名
+        /// </summary>
         public string FileFullname { get; set; }
+        /// <summary>
+        /// 压缩后的数据
+        /// </summary>
         public string Data { get; set; }
+        /// <summary>
+        /// 压缩是否成功
+        /// </summary>
+        public bool IsSuccess { get; set; }
     }
 }

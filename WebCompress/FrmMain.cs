@@ -18,9 +18,10 @@ namespace WebCompress
     public partial class FrmMain : Form
     {
         private CompressHelper _compressHelper = new CompressHelper();
-        private List<string> _fileList = new List<string>();
-        private int _totalCount;
-        private int _completedCount;
+        private List<string> _fileList = new List<string>(); //压缩文件集合
+        private int _totalCount; //压缩文件总数
+        private int _completedCount; //成功压缩文件总数
+        private int _failedCount; //压缩失败文件总数
         public FrmMain()
         {
             InitializeComponent();
@@ -29,7 +30,7 @@ namespace WebCompress
         private void FrmMain_Load(object sender, EventArgs e)
         {
             _compressHelper.Compressed += StartCompressed;
-            _compressHelper.EndCompress+=EndCompressed;
+            _compressHelper.EndCompress += EndCompressed;
         }
 
         /// <summary>
@@ -38,38 +39,57 @@ namespace WebCompress
         private void btnBrowse_Click(object sender, EventArgs e)
         {
             var folder = new FolderBrowserDialog();
-            if (folder.ShowDialog() == DialogResult.OK)
+            try
             {
-                _fileList.Clear();
-                _completedCount = 0;
-                _totalCount = 0;
-                txtPath.Text = folder.SelectedPath;
-                foreach (var file in Directory.GetFiles(folder.SelectedPath, "*.*", SearchOption.AllDirectories).Where(p => p.EndsWith(".js") || p.EndsWith(".css") || p.EndsWith(".html")))
+                if (folder.ShowDialog() == DialogResult.OK)
                 {
-                    #region 测试
-                    //for (var i = 0; i < 1000; i++)
-                    //{
-                    //    if (file.EndsWith(".js"))
-                    //    {
-                    //        File.Copy(file, string.Format("{0}.js", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
-                    //    }
-                    //    else if (file.EndsWith(".css"))
-                    //    {
-                    //        File.Copy(file, string.Format("{0}.css", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
-                    //    }
-                    //    else if (file.EndsWith(".html"))
-                    //    {
-                    //        File.Copy(file, string.Format("{0}.html", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
-                    //    }
-                    //    Thread.Sleep(10);
-                    //}
-                    #endregion
+                    btnCompress.Enabled = true;
+                    lblTotalCount.Text = string.Empty;
+                    lblCompletedCount.Text = string.Empty;
+                    lblFailedCount.Text = string.Empty;
+                    lblPrecent.Text = "0%";
+                    _fileList.Clear();
+                    _completedCount = 0;
+                    _totalCount = 0;
+                    _failedCount = 0;
+                    pbCompress.Minimum = 0;
+                    pbCompress.Value = 0;
+                    txtPath.Text = folder.SelectedPath;
+                    foreach (var file in Directory.GetFiles(folder.SelectedPath, "*.*", SearchOption.AllDirectories)
+                        .Where(p => (cbJs.Checked && p.EndsWith(".js"))
+                                         || (cbCss.Checked && p.EndsWith(".css"))
+                                         || (cbHtml.Checked && p.EndsWith(".html"))))
+                    {
+                        #region 测试
+                        //for (var i = 0; i < 1000; i++)
+                        //{
+                        //    if (file.EndsWith(".js"))
+                        //    {
+                        //        File.Copy(file, string.Format("{0}.js", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
+                        //    }
+                        //    else if (file.EndsWith(".css"))
+                        //    {
+                        //        File.Copy(file, string.Format("{0}.css", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
+                        //    }
+                        //    else if (file.EndsWith(".html"))
+                        //    {
+                        //        File.Copy(file, string.Format("{0}.html", DateTime.Now.ToString("yyyyMMdddHHmmssfff")));
+                        //    }
+                        //    Thread.Sleep(10);
+                        //}
+                        #endregion
 
-                    _fileList.Add(file);
+                        if (File.Exists(file) && File.ReadAllText(file).Length > 0)
+                            _fileList.Add(file);
+                    }
+                    _totalCount = _fileList.Count();
+                    lblTotalCount.Text = string.Format("文件总数：{0}", _totalCount);
+                    pbCompress.Maximum = _totalCount;
                 }
-                _totalCount = _fileList.Count();
-                lblCssCount.Text = string.Format("压缩文件数：{0}", _totalCount);
-                pbCompress.Maximum = _totalCount;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -78,27 +98,53 @@ namespace WebCompress
         /// </summary>
         private void btnCompress_Click(object sender, EventArgs e)
         {
-            //var file = @"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.html";
-            //_compressHelper.StartCompress(file, "html");
+            _failedCount = 0;
 
-            foreach (var file in _fileList)
+            //var file = @"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.css";
+            //_compressHelper.StartCompress(file, "css");
+
+            //var file = @"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.js";
+            //_compressHelper.StartCompress(file, "js");
+
+            btnCompress.Enabled = false;
+            StartCompress();
+        }
+
+        /// <summary>
+        /// 开始压缩
+        /// </summary>
+        private void StartCompress()
+        {
+            ThreadPool.QueueUserWorkItem(o =>
             {
-                if (string.IsNullOrEmpty(file)) continue;
-                string fileType = "";
-                if (file.EndsWith(".js"))
+                try
                 {
-                    fileType = "js";
+                    var fileList = _fileList.ToList();
+                    //压缩
+                    foreach (var file in fileList)
+                    {
+                        if (string.IsNullOrEmpty(file)) continue;
+                        string fileType = "";
+                        if (file.EndsWith(".js"))
+                        {
+                            fileType = "js";
+                        }
+                        else if (file.EndsWith(".css"))
+                        {
+                            fileType = "css";
+                        }
+                        else if (file.EndsWith(".html"))
+                        {
+                            fileType = "html";
+                        }
+                        _compressHelper.StartCompress(file, fileType);
+                    }
                 }
-                else if (file.EndsWith(".css"))
+                catch (Exception ex)
                 {
-                    fileType = "css";
+                    Console.WriteLine(ex.Message);
                 }
-                else if (file.EndsWith(".html"))
-                {
-                    fileType = "html";
-                }
-                _compressHelper.StartCompress(file, fileType);
-            }
+            });
         }
 
         /// <summary>
@@ -106,10 +152,10 @@ namespace WebCompress
         /// </summary>
         private void StartCompressed(object sender, EventArgs e)
         {
+            var args = e as CompressArgs;
+            if (args == null) return;
             try
             {
-                var args = e as CompressArgs;
-                if (args == null) return;
                 var data = File.ReadAllText(args.FileFullname);
                 switch (args.FileType)
                 {
@@ -121,71 +167,75 @@ namespace WebCompress
                         break;
                     case "html":
                         args.Data = OschinaCompress.HtmlCompress(data);
-                        args.Data = string.IsNullOrEmpty(args.Data) ? args.Data : args.Data.Replace("\r", "").Replace("\n", "").Replace("\t", "");
                         break;
                 }
+                args.Data = string.IsNullOrEmpty(args.Data) ? args.Data : args.Data.Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                args.IsSuccess = true;
             }
             catch (Exception ex)
-            { 
-            //
+            {
+                args.IsSuccess = false;
+                Console.WriteLine(ex.Message);
             }
         }
 
+        /// <summary>
+        /// 异步压缩完成
+        /// </summary>
         private void EndCompressed(object sender, EventArgs e)
         {
+            var args = e as CompressArgs;
+            if (args == null) return;
             try
             {
-                var args = e as CompressArgs;
-                if (args == null) return;
-                if (!string.IsNullOrEmpty(args.Data))
+                if (args.IsSuccess) ///
                 {
-                    File.WriteAllText(args.FileFullname, args.Data);
+                    if (!string.IsNullOrEmpty(args.Data))
+                    {
+                        File.WriteAllText(args.FileFullname, args.Data);
+                    }
                     _fileList.Remove(args.FileFullname);
                     _completedCount++;
                 }
-                Invoke(new Action(() =>
+                else
+                {
+                    _failedCount++;
+                    Console.WriteLine(args.FileFullname);
+                }
+
+
+                BeginInvoke(new Action(() =>
                 {
                     lblCompletedCount.Text = string.Format("已压缩文件：{0}", _completedCount);
+                    lblFailedCount.Text = string.Format("压缩失败：{0}", _failedCount);
+                    lblPrecent.Text = (_completedCount / (_totalCount * 1.0)).ToString("00.00%");
                     pbCompress.Value = _completedCount;
                 }));
+
+                if (_totalCount > 0 && _failedCount > 0 && (_totalCount == _completedCount + _failedCount))
+                {
+                    //已遍历所有文件,如果还存在没有被压缩的文件则继续压缩
+                    Invoke(new Action(() =>
+                    {
+                        btnCompress.Enabled = true;
+                        if (MessageBox.Show(string.Format("有{0}个文件压缩失败,是否保存文件名或重新压缩", _failedCount), "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                        {
+                            var failedFile = Environment.CurrentDirectory + @"\failed.txt";
+                            if (File.Exists(failedFile)) File.Delete(failedFile);
+                            File.AppendAllLines(failedFile, _fileList);
+                            MessageBox.Show(string.Format("已保存至文件：{0}", failedFile));
+                        }
+                    }));
+                    //_failedCount = 0;
+                    //StartCompress();
+                }
             }
             catch (Exception ex)
-            { 
-            //
+            {
+                //
+                Console.WriteLine(ex.Message);
             }
         }
-
-        #region 测试
-        //private void btnBrowse_Click(object sender, EventArgs e)
-        //{
-        //    var cssString = File.ReadAllText(@"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.css");
-
-        //    var resultCss = CssMinifier.MinifyCss(cssString.Replace('\r',' ').Replace('\r',' '));
-
-        //}
-
-        //private void button1_Click(object sender, EventArgs e)
-        //{
-        //    var cssString = File.ReadAllText(@"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.css");
-
-        //   var resultCss = OschinaCompress.CssCompress(cssString);
-
-        //}
-
-        //private void button2_Click(object sender, EventArgs e)
-        //{
-        //    var jsString = File.ReadAllText(@"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.js");
-
-        //    var resultCss = OschinaCompress.CssCompress(jsString);
-        //}
-
-        //private void button3_Click(object sender, EventArgs e)
-        //{
-        //    var htmlString = File.ReadAllText(@"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.html");
-        //    var resultHtml = OschinaCompress.HtmlCompress(htmlString);
-        //    File.WriteAllText(@"C:\Users\Administrator\Desktop\ALGroup\前端压缩工具\Test\test.min.html", resultHtml);
-        //}
-        #endregion
 
     }
 }
