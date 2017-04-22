@@ -26,8 +26,8 @@ namespace WebCompressCommon
         {
             var urlString = @"http://tool.oschina.net/action/jscompress/css_compress?linebreakpos=0";
             var param = rawCss;
-            string requestData = RequestDataByPost(urlString, param);
-            var dic = JsonConverter.JsonToDictionary(requestData);
+            string responseData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("result"))
                 return dic["result"].ToString();
             return string.Empty;
@@ -43,8 +43,8 @@ namespace WebCompressCommon
         {
             var urlString = @"http://tool.lu/css/ajax.html";
             var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
-            string requestData = RequestDataByPost(urlString, param);
-            var dic = JsonConverter.JsonToDictionary(requestData);
+            string responseData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("text"))
                 return dic["text"].ToString();
             return string.Empty;
@@ -60,8 +60,8 @@ namespace WebCompressCommon
         {
             var urlString = @"http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0";
             var param = rawJs;
-            string requestData = RequestDataByPost(urlString, param);
-            var dic = JsonConverter.JsonToDictionary(requestData);
+            string responseData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("result"))
                 return dic["result"].ToString();
             return string.Empty;
@@ -75,8 +75,8 @@ namespace WebCompressCommon
         {
             var urlString = @"http://tool.lu/js/ajax.html";
             var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
-            string requestData = RequestDataByPost(urlString, param);
-            var dic = JsonConverter.JsonToDictionary(requestData);
+            string responseData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("text"))
                 return dic["text"].ToString();
             return string.Empty;
@@ -91,8 +91,8 @@ namespace WebCompressCommon
         {
             var urlString = @"http://tool.lu/html/ajax.html";
             var param = string.Format("code={0}&operate=compress", HttpUtility.UrlEncode(rawData));
-            string requestData = RequestDataByPost(urlString, param);
-            var dic = JsonConverter.JsonToDictionary(requestData);
+            string responseData = RequestDataByPost(urlString, param);
+            var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("text"))
                 return dic["text"].ToString();
             return string.Empty;
