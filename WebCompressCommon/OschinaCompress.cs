@@ -84,6 +84,20 @@ namespace WebCompressCommon
             return string.Empty;
         }
 
+        public static string JsCompress3(string rawData)
+        {
+            ECMAScriptPacker p = new ECMAScriptPacker(ECMAScriptPacker.PackerEncoding.Normal, true, true);
+            return p.Pack(rawData);//.Replace("\n", "\r\n");
+        }
+
+        public static string JsCompressMinifier(string rawData)
+        {
+            var url = @"https://javascript-minifier.com/raw";
+            var param = "input=" + rawData;
+            string responseData = RequestDataByPost(url, param);
+            return responseData;
+        }
+
         /// <summary>
         /// 压缩html
         /// </summary>

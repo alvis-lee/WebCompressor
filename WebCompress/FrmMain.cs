@@ -161,7 +161,7 @@ namespace WebCompress
                 switch (args.FileType)
                 {
                     case "js":
-                        args.Data = OschinaCompress.JsCompress2(data);
+                        args.Data = OschinaCompress.JsCompressMinifier(data);
                         break;
                     case "css":
                         args.Data = OschinaCompress.CssCompress(data);
@@ -170,9 +170,9 @@ namespace WebCompress
                         args.Data = OschinaCompress.HtmlCompress(data);
                         break;
                 }
-                //使用栈却掉 /* */
+            
                 args.Data = string.IsNullOrEmpty(args.Data) ? args.Data : args.Data.Replace("\r", "").Replace("\n", "").Replace("\t", "");
-                args.Data = ReduceMultiCommnet(args.Data);
+                //args.Data = ReduceMultiCommnet(args.Data);
                 args.IsSuccess = true;
             }
             catch (Exception ex)
@@ -253,7 +253,7 @@ namespace WebCompress
                 {
                     symbolStack.Push(i);
                 }
-                else if (symbol == "*/")
+                else if (symbol == "*/" && symbolStack.Count > 0)
                 {
                     var start = symbolStack.Pop();
                     context = context.Remove(start, i - start + 2);
