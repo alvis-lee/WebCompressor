@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Web.UI;
 using System.Windows.Forms;
 using WebCompressCommon;
 
@@ -160,7 +161,7 @@ namespace WebCompress
                 switch (args.FileType)
                 {
                     case "js":
-                        args.Data = OschinaCompress.JsCompress(data);
+                        args.Data = OschinaCompress.JsCompress2(data);
                         break;
                     case "css":
                         args.Data = OschinaCompress.CssCompress(data);
@@ -169,7 +170,9 @@ namespace WebCompress
                         args.Data = OschinaCompress.HtmlCompress(data);
                         break;
                 }
+                //使用栈却掉 /* */
                 args.Data = string.IsNullOrEmpty(args.Data) ? args.Data : args.Data.Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                args.Data = ReduceMultiCommnet(args.Data);
                 args.IsSuccess = true;
             }
             catch (Exception ex)
@@ -237,5 +240,27 @@ namespace WebCompress
             }
         }
 
+
+        private string ReduceMultiCommnet(string context)
+        {
+            var startIndexs = context.IndexOf("/*");
+            Stack<int> symbolStack = new Stack<int>();
+            var length = context.Length;
+            for (var i = 0; i < length - 1; i++)
+            {
+                string symbol = context.Substring(i, 2);
+                if (symbol == "/*")
+                {
+                    symbolStack.Push(i);
+                }
+                else if (symbol == "*/")
+                {
+                    var start = symbolStack.Pop();
+                    context = context.Remove(start, i - start + 2);
+                    length = context.Length;
+                }
+            }
+            return context;
+        }
     }
 }

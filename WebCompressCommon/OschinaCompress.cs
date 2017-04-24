@@ -42,7 +42,8 @@ namespace WebCompressCommon
         public static string CssCompress2(string rawData)
         {
             var urlString = @"http://tool.lu/css/ajax.html";
-            var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            //var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            var param = string.Format("code={0}&operate=pack", HttpUtility.UrlEncode(rawData));
             string responseData = RequestDataByPost(urlString, param);
             var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("text"))
@@ -52,13 +53,13 @@ namespace WebCompressCommon
 
         /// <summary>
         /// 压缩js
-        /// http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0
+        /// http://tool.oschina.net/action/jscompress/js_compress?munge=1&linebreakpos=0
         /// </summary>
         /// <param name="rawJs">需要压缩的js</param>
         /// <returns>压缩后的js</returns>
         public static string JsCompress(string rawJs)
         {
-            var urlString = @"http://tool.oschina.net/action/jscompress/js_compress?munge=0&linebreakpos=0";
+            var urlString = @"http://tool.oschina.net/action/jscompress/js_compress?munge=1&linebreakpos=0";
             var param = rawJs;
             string responseData = RequestDataByPost(urlString, param);
             var dic = JsonConverter.JsonToDictionary(responseData);
@@ -74,7 +75,8 @@ namespace WebCompressCommon
         public static string JsCompress2(string rawData)
         {
             var urlString = @"http://tool.lu/js/ajax.html";
-            var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            //var param = string.Format("code={0}&operate=purify", HttpUtility.UrlEncode(rawData));
+            var param = string.Format("code={0}&operate=uglify", HttpUtility.UrlEncode(rawData));
             string responseData = RequestDataByPost(urlString, param);
             var dic = JsonConverter.JsonToDictionary(responseData);
             if (dic.ContainsKey("text"))
